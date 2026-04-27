@@ -6,7 +6,7 @@
     <title>App Marcela</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1976d2">
+    <meta name="theme-color" content="#7e57c2">
     <meta name="mobile-web-app-capable" content="yes">
 
     <style>
@@ -20,20 +20,44 @@
             background-position: center;
         }
 
+        /* --- NUEVO ESTILO PARA FECHA Y HORA --- */
+        .datetime-container {
+            background: rgba(126, 87, 194, 0.9);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px 8px 0 0;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
         .header, .controls {
             background: rgba(255, 255, 255, 0.9);
             padding: 15px;
-            border-radius: 8px;
             margin-bottom: 15px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-radius: 0 0 8px 8px; 
+            margin-top: 0;
+        }
+        
         .header h1 { font-size: 20px; margin: 0; color: #333; }
         .total { font-size: 24px; font-weight: bold; color: #2e7d32; }
         
-        .controls { display: flex; justify-content: space-between; align-items: center; }
-        .btn-link { background: none; border: none; color: #1976d2; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-radius: 8px;
+        }
+
+        .btn-link { background: none; border: none; color: #7e57c2; cursor: pointer; font-size: 16px; font-weight: bold; }
         .btn-red { color: #d32f2f; }
 
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
@@ -47,6 +71,10 @@
     </style>
 </head>
 <body>
+
+    <div class="datetime-container" id="current-datetime">
+        --/--/---- --:--:--
+    </div>
 
     <div class="header">
         <h1>MARCELA</h1>
@@ -75,40 +103,52 @@
             navigator.serviceWorker.register('sw.js');
         }
 
-        // --- FUNCIÓN PARA GUARDAR DATOS ---
+        // --- FUNCIÓN PARA RELOJ EN TIEMPO REAL ---
+        function actualizarReloj() {
+            const ahora = new Date();
+            
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const anio = ahora.getFullYear();
+            
+            const horas = String(ahora.getHours()).padStart(2, '0');
+            const minutos = String(ahora.getMinutes()).padStart(2, '0');
+            const segundos = String(ahora.getSeconds()).padStart(2, '0');
+            
+            const formatoFechaHora = `${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
+            document.getElementById('current-datetime').innerText = formatoFechaHora;
+        }
+
+        // Ejecutar reloj cada segundo
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj(); // Llamada inicial
+
+        // --- FUNCIONES DE LA TABLA (IGUAL QUE ANTES) ---
         function guardarDatos() {
             const filas = document.querySelectorAll('.fila-producto');
             const datos = [];
-            
             filas.forEach(fila => {
                 const producto = fila.querySelector('.prod').value;
                 const cantidad = fila.querySelector('.cant').value;
                 const precio = fila.querySelector('.prec').value;
-                
-                // Solo guardamos si hay algo escrito para no llenar de basura
                 if (producto || cantidad > 0 || precio > 0) {
                     datos.push({ producto, cantidad, precio });
                 }
             });
-            
             localStorage.setItem('datosVentas', JSON.stringify(datos));
             calcularTotal();
         }
 
-        // --- FUNCIÓN PARA CARGAR DATOS ---
         function cargarDatos() {
             const datosGuardados = localStorage.getItem('datosVentas');
             if (datosGuardados) {
                 const datos = JSON.parse(datosGuardados);
                 const tbody = document.getElementById('cuerpo-tabla');
-                tbody.innerHTML = ''; // Limpiar antes de cargar
-
+                tbody.innerHTML = '';
                 datos.forEach(item => {
                     crearFilaHTML(item.producto, item.cantidad, item.precio);
                 });
             }
-            
-            // Si después de cargar no hay filas, crear una vacía
             if (document.querySelectorAll('.fila-producto').length === 0) {
                 agregarFila();
             }
@@ -119,7 +159,6 @@
             const tbody = document.getElementById('cuerpo-tabla');
             const fila = document.createElement('tr');
             fila.className = "fila-producto";
-
             fila.innerHTML = `
                 <td><button class="btn-add" onclick="agregarFila()">+</button></td>
                 <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
@@ -146,16 +185,13 @@
         function calcularTotal() {
             let totalGeneral = 0;
             const filas = document.querySelectorAll('.fila-producto');
-            
             filas.forEach(fila => {
                 const cantidad = parseFloat(fila.querySelector('.cant').value);
                 const precio = parseFloat(fila.querySelector('.prec').value);
-                
                 if (!isNaN(cantidad) && !isNaN(precio)) {
                     totalGeneral += (cantidad * precio);
                 }
             });
-
             document.getElementById('display-total').innerText = 
                 `$${totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
@@ -169,7 +205,6 @@
             }
         }
 
-        // Al iniciar, cargar lo que esté guardado
         window.onload = cargarDatos;
     </script>
 </body>
