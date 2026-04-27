@@ -1,14 +1,14 @@
 {
-  "name": "App Marcela Ventas",
+  "name": "App Marcela",
   "short_name": "Marcela",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#1976d2",
+  "theme_color": "#7e57c2",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/9428/9428231.png",
+      "src": "https://i.pinimg.com/236x/e8/be/86/e8be86df9d0ecc01c3439b9bd36915e0.jpg",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
