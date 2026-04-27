@@ -1,4 +1,109 @@
-// --- FUNCIÓN PARA RELOJ EN TIEMPO REAL CON DÍA EN LETRA ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Marcela</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7e57c2">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            padding: 20px;
+            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000'); 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+
+        /* --- NUEVO ESTILO PARA FECHA Y HORA --- */
+        .datetime-container {
+            background: rgba(126, 87, 194, 0.9);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            border-radius: 8px 8px 0 0;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .header, .controls {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-radius: 0 0 8px 8px; 
+            margin-top: 0;
+        }
+        
+        .header h1 { font-size: 20px; margin: 0; color: #333; }
+        .total { font-size: 24px; font-weight: bold; color: #2e7d32; }
+        
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-radius: 8px;
+        }
+
+        .btn-link { background: none; border: none; color: #7e57c2; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-red { color: #d32f2f; }
+
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: left; }
+        th { background-color: #f8f9fa; color: #555; font-size: 14px; }
+
+        input { width: 95%; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; }
+        .btn-add { background: #e0e0e0; border: 1px solid #ccc; cursor: pointer; padding: 5px 12px; border-radius: 4px; font-weight: bold; }
+        
+        input:focus { background-color: #fff9c4; border-radius: 4px; } 
+    </style>
+</head>
+<body>
+
+    <div class="datetime-container" id="current-datetime">
+        --/--/---- --:--:--
+    </div>
+
+    <div class="header">
+        <h1>MARCELA</h1>
+        <div class="total" id="display-total">$0.00</div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-link" onclick="agregarFila()">+Nuevo</button>
+        <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
+    </div>
+
+    <table id="tabla-productos">
+        <thead>
+            <tr>
+                <th style="width: 40px;"></th>
+                <th>Producto</th>
+                <th>Cant.</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpo-tabla"></tbody>
+    </table>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // --- FUNCIÓN PARA RELOJ EN TIEMPO REAL CON DÍA EN LETRA ---
         function actualizarReloj() {
             const ahora = new Date();
             
@@ -18,3 +123,94 @@
             const formatoFechaHora = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
             document.getElementById('current-datetime').innerText = formatoFechaHora;
         }
+
+        // Ejecutar reloj cada segundo
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj(); // Llamada inicial
+
+        // --- FUNCIONES DE LA TABLA (IGUAL QUE ANTES) ---
+        function guardarDatos() {
+            const filas = document.querySelectorAll('.fila-producto');
+            const datos = [];
+            filas.forEach(fila => {
+                const producto = fila.querySelector('.prod').value;
+                const cantidad = fila.querySelector('.cant').value;
+                const precio = fila.querySelector('.prec').value;
+                if (producto || cantidad > 0 || precio > 0) {
+                    datos.push({ producto, cantidad, precio });
+                }
+            });
+            localStorage.setItem('datosVentas', JSON.stringify(datos));
+            calcularTotal();
+        }
+
+        function cargarDatos() {
+            const datosGuardados = localStorage.getItem('datosVentas');
+            if (datosGuardados) {
+                const datos = JSON.parse(datosGuardados);
+                const tbody = document.getElementById('cuerpo-tabla');
+                tbody.innerHTML = '';
+                datos.forEach(item => {
+                    crearFilaHTML(item.producto, item.cantidad, item.precio);
+                });
+            }
+            if (document.querySelectorAll('.fila-producto').length === 0) {
+                agregarFila();
+            }
+            calcularTotal();
+        }
+
+        function crearFilaHTML(prod = '', cant = 0, prec = '') {
+            const tbody = document.getElementById('cuerpo-tabla');
+            const fila = document.createElement('tr');
+            fila.className = "fila-producto";
+            fila.innerHTML = `
+                <td><button class="btn-add" onclick="agregarFila()">+</button></td>
+                <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
+                <td><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
+                <td><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
+            `;
+            tbody.appendChild(fila);
+            return fila;
+        }
+
+        function agregarFila() {
+            const fila = crearFilaHTML();
+            fila.querySelector('.prod').focus();
+            guardarDatos();
+        }
+
+        function verificarEnter(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                agregarFila();
+            }
+        }
+
+        function calcularTotal() {
+            let totalGeneral = 0;
+            const filas = document.querySelectorAll('.fila-producto');
+            filas.forEach(fila => {
+                const cantidad = parseFloat(fila.querySelector('.cant').value);
+                const precio = parseFloat(fila.querySelector('.prec').value);
+                if (!isNaN(cantidad) && !isNaN(precio)) {
+                    totalGeneral += (cantidad * precio);
+                }
+            });
+            document.getElementById('display-total').innerText = 
+                `$${totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function borrarTodo() {
+            if(confirm("¿Deseas limpiar toda la lista?")) {
+                localStorage.removeItem('datosVentas');
+                document.getElementById('cuerpo-tabla').innerHTML = '';
+                document.getElementById('display-total').innerText = '$0.00';
+                agregarFila();
+            }
+        }
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
