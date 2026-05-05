@@ -20,7 +20,6 @@
             background-position: center;
         }
 
-        /* --- NUEVO ESTILO PARA FECHA Y HORA --- */
         .datetime-container {
             background: rgba(126, 87, 194, 0.9);
             color: white;
@@ -61,11 +60,25 @@
         .btn-red { color: #d32f2f; }
 
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: left; }
-        th { background-color: #f8f9fa; color: #555; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px 5px; text-align: left; }
+        th { background-color: #f8f9fa; color: #555; font-size: 12px; text-align: center; }
 
         input { width: 95%; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; }
-        .btn-add { background: #e0e0e0; border: 1px solid #ccc; cursor: pointer; padding: 5px 12px; border-radius: 4px; font-weight: bold; }
+        
+        /* Estilos de botones de acción */
+        .btn-action { 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            border: 1px solid #ccc; 
+            font-weight: bold; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-add-row { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+        .btn-del-row { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
         
         input:focus { background-color: #fff9c4; border-radius: 4px; } 
     </style>
@@ -77,22 +90,23 @@
     </div>
 
     <div class="header">
-        <h1>MARCELA Pal Super y Salidas</h1>
+        <h1>MARCELA</h1>
         <div class="total" id="display-total">$0.00</div>
     </div>
 
     <div class="controls">
-        <button class="btn-link" onclick="agregarFila()">+Nuevo</button>
+        <button class="btn-link" onclick="agregarFila()">+ Nuevo Item</button>
         <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
     </div>
 
     <table id="tabla-productos">
         <thead>
             <tr>
-                <th style="width: 40px;"></th>
+                <th style="width: 35px;">+</th>
                 <th>Producto</th>
-                <th>Cant.</th>
-                <th>Precio</th>
+                <th style="width: 50px;">Cant.</th>
+                <th style="width: 80px;">Precio</th>
+                <th style="width: 35px;">-</th>
             </tr>
         </thead>
         <tbody id="cuerpo-tabla"></tbody>
@@ -100,35 +114,24 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.worker = navigator.serviceWorker.register('sw.js');
         }
 
-        // --- FUNCIÓN PARA RELOJ EN TIEMPO REAL CON DÍA EN LETRA ---
         function actualizarReloj() {
             const ahora = new Date();
-            
-            // Arreglo para convertir el número del día en letra
             const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
             const nombreDia = diasSemana[ahora.getDay()];
-            
             const dia = String(ahora.getDate()).padStart(2, '0');
             const mes = String(ahora.getMonth() + 1).padStart(2, '0');
             const anio = ahora.getFullYear();
-            
             const horas = String(ahora.getHours()).padStart(2, '0');
             const minutos = String(ahora.getMinutes()).padStart(2, '0');
             const segundos = String(ahora.getSeconds()).padStart(2, '0');
-            
-            // Formato: "Lunes, 27/04/2026 13:51:28"
-            const formatoFechaHora = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
-            document.getElementById('current-datetime').innerText = formatoFechaHora;
+            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
         }
-
-        // Ejecutar reloj cada segundo
         setInterval(actualizarReloj, 1000);
-        actualizarReloj(); // Llamada inicial
+        actualizarReloj();
 
-        // --- FUNCIONES DE LA TABLA (IGUAL QUE ANTES) ---
         function guardarDatos() {
             const filas = document.querySelectorAll('.fila-producto');
             const datos = [];
@@ -160,15 +163,16 @@
             calcularTotal();
         }
 
-        function crearFilaHTML(prod = '', cant = 0, prec = '') {
+        function crearFilaHTML(prod = '', cant = 1, prec = '') {
             const tbody = document.getElementById('cuerpo-tabla');
             const fila = document.createElement('tr');
             fila.className = "fila-producto";
             fila.innerHTML = `
-                <td><button class="btn-add" onclick="agregarFila()">+</button></td>
+                <td style="text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
                 <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
                 <td><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
                 <td><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
+                <td style="text-align: center;"><button class="btn-action btn-del-row" onclick="eliminarFila(this)">-</button></td>
             `;
             tbody.appendChild(fila);
             return fila;
@@ -178,6 +182,16 @@
             const fila = crearFilaHTML();
             fila.querySelector('.prod').focus();
             guardarDatos();
+        }
+
+        function eliminarFila(boton) {
+            const fila = boton.closest('tr');
+            fila.remove();
+            guardarDatos();
+            // Si borramos la última fila, agregar una vacía por defecto
+            if (document.querySelectorAll('.fila-producto').length === 0) {
+                agregarFila();
+            }
         }
 
         function verificarEnter(event) {
