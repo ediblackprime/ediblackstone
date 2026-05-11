@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Marcela</title>
+    <title>App Marcela - Respaldo</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7e57c2">
@@ -84,8 +84,6 @@
 </head>
 <body>
 
-    <div id="youtube-player" style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; overflow: hidden;"></div>
-
     <div class="datetime-container" id="current-datetime">
         --/--/---- --:--:--
     </div>
@@ -118,41 +116,6 @@
             navigator.serviceWorker.register('sw.js');
         }
 
-        // --- LÓGICA DE MÚSICA INVISIBLE ---
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '1',
-                width: '1',
-                videoId: 'a-Bd5PjpeDc', 
-                playerVars: {
-                    'autoplay': 1,
-                    'loop': 1,
-                    'playlist': 'a-Bd5PjpeDc', // Necesario para que el loop funcione
-                    'controls': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            // Android requiere interacción para sonar.
-            // Al primer toque en cualquier lado de la app, inicia la música.
-            document.body.addEventListener('click', () => {
-                event.target.playVideo();
-            }, { once: true });
-        }
-
-        // --- RELOJ Y GESTIÓN DE DATOS ---
         function actualizarReloj() {
             const ahora = new Date();
             const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -161,9 +124,9 @@
             const mes = String(ahora.getMonth() + 1).padStart(2, '0');
             const anio = ahora.getFullYear();
             const horas = String(ahora.getHours()).padStart(2, '0');
-            const min = String(ahora.getMinutes()).padStart(2, '0');
-            const seg = String(ahora.getSeconds()).padStart(2, '0');
-            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${min}:${seg}`;
+            const minutos = String(ahora.getMinutes()).padStart(2, '0');
+            const segundos = String(ahora.getSeconds()).padStart(2, '0');
+            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
         }
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
