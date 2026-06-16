@@ -3,21 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Marcela - Respaldo</title>
+    <title>App Marcela</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7e57c2">
     <meta name="mobile-web-app-capable" content="yes">
 
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
+        /* Ajuste estructural para congelar la parte superior */
+        html, body {
+            height: 100%;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            overflow: hidden; /* Evita que toda la pantalla se deslice */
+            font-family: Arial, sans-serif; 
+        }
+
+        body { 
+            display: flex;
+            flex-direction: column;
             background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000'); 
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
+        }
+
+        /* CONTENEDOR FIJO (Todo lo que está arriba de la línea amarilla) */
+        .fixed-top-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 20px 20px 0 20px;
+            box-sizing: border-box;
         }
 
         .datetime-container {
@@ -59,9 +76,46 @@
         .btn-link { background: none; border: none; color: #7e57c2; cursor: pointer; font-size: 16px; font-weight: bold; }
         .btn-red { color: #d32f2f; }
 
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; padding: 10px 5px; text-align: left; }
-        th { background-color: #f8f9fa; color: #555; font-size: 12px; text-align: center; }
+        /* TABLA DE ENCABEZADO FIJO */
+        .table-header-fixed {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .table-header-fixed th { 
+            border: 1px solid #ddd; 
+            padding: 10px 5px; 
+            color: #555; 
+            font-size: 12px; 
+            text-align: center; 
+        }
+
+        /* CONTENEDOR DESLIZABLE (Los productos de la línea amarilla hacia abajo) */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto; /* Activa el scroll vertical solo aquí */
+            padding: 0 20px 20px 20px;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch; /* Suaviza el scroll en celulares */
+        }
+
+        .table-body-scroll { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: white; 
+            border-radius: 0 0 8px 8px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        
+        .table-body-scroll td { 
+            border: 1px solid #ddd; 
+            padding: 10px 5px; 
+            text-align: left; 
+        }
 
         input { width: 95%; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; }
         
@@ -84,38 +138,84 @@
 </head>
 <body>
 
-    <div class="datetime-container" id="current-datetime">
-        --/--/---- --:--:--
+    <!-- El reproductor invisible -->
+    <div id="youtube-player" style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- TODO ESTO SE QUEDA CONGELADO ARRIBA -->
+    <div class="fixed-top-container">
+        <div class="datetime-container" id="current-datetime">
+            --/--/---- --:--:--
+        </div>
+
+        <div class="header">
+            <h1>MARCELA</h1>
+            <div class="total" id="display-total">$0.00</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-link" onclick="agregarFila()">+ Nuevo Item</button>
+            <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
+        </div>
+
+        <!-- Encabezado de la Tabla Congelado -->
+        <table class="table-header-fixed">
+            <thead>
+                <tr>
+                    <th style="width: 35px;">+</th>
+                    <th>Producto</th>
+                    <th style="width: 50px;">Cant.</th>
+                    <th style="width: 80px;">Precio</th>
+                    <th style="width: 35px;">-</th>
+                </tr>
+            </thead>
+        </table>
     </div>
 
-    <div class="header">
-        <h1>MARCELA</h1>
-        <div class="total" id="display-total">$0.00</div>
+    <!-- SECCIÓN CON SCROLL INDEPENDIENTE (A partir de la línea amarilla) -->
+    <div class="scrollable-content">
+        <table class="table-body-scroll">
+            <tbody id="cuerpo-tabla"></tbody>
+        </table>
     </div>
-
-    <div class="controls">
-        <button class="btn-link" onclick="agregarFila()">+ Nuevo Item</button>
-        <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
-    </div>
-
-    <table id="tabla-productos">
-        <thead>
-            <tr>
-                <th style="width: 35px;">+</th>
-                <th>Producto</th>
-                <th style="width: 50px;">Cant.</th>
-                <th style="width: 80px;">Precio</th>
-                <th style="width: 35px;">-</th>
-            </tr>
-        </thead>
-        <tbody id="cuerpo-tabla"></tbody>
-    </table>
 
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
+        // --- MÚSICA DE FONDO ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '1',
+                width: '1',
+                videoId: 'a-Bd5PjpeDc', 
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': 'a-Bd5PjpeDc',
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            document.body.addEventListener('click', () => {
+                event.target.playVideo();
+            }, { once: true });
+        }
+
+        // --- RELOJ ---
         function actualizarReloj() {
             const ahora = new Date();
             const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -124,13 +224,14 @@
             const mes = String(ahora.getMonth() + 1).padStart(2, '0');
             const anio = ahora.getFullYear();
             const horas = String(ahora.getHours()).padStart(2, '0');
-            const minutos = String(ahora.getMinutes()).padStart(2, '0');
-            const segundos = String(ahora.getSeconds()).padStart(2, '0');
-            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
+            const min = String(ahora.getMinutes()).padStart(2, '0');
+            const seg = String(ahora.getSeconds()).padStart(2, '0');
+            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${min}:${seg}`;
         }
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
 
+        // --- MANEJO DE DATOS Y TABLA ---
         function guardarDatos() {
             const filas = document.querySelectorAll('.fila-producto');
             const datos = [];
@@ -166,12 +267,14 @@
             const tbody = document.getElementById('cuerpo-tabla');
             const fila = document.createElement('tr');
             fila.className = "fila-producto";
+            
+            // Forzar anchos idénticos a los del encabezado fijo para mantener la simetría visual
             fila.innerHTML = `
-                <td style="text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
+                <td style="width: 35px; text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
                 <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
-                <td><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
-                <td><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
-                <td style="text-align: center;"><button class="btn-action btn-del-row" onclick="eliminarFila(this)">-</button></td>
+                <td style="width: 50px;"><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
+                <td style="width: 80px;"><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
+                <td style="width: 35px; text-align: center;"><button class="btn-action btn-del-row" onclick="eliminarFila(this)">-</button></td>
             `;
             tbody.appendChild(fila);
             return fila;
