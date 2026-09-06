@@ -3,32 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcelap</title>
+    <title>App Marcela</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7e57c2">
     <meta name="mobile-web-app-capable" content="yes">
 
     <style>
-        /* Ajuste estructural para congelar la parte superior */
+        /* Variables para temas */
+        :root {
+            --bg-gradient: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000');
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --text-color: #333333;
+            --table-bg: #ffffff;
+            --table-header-bg: #f8f9fa;
+            --table-border: #dddddd;
+            --input-focus: #fff9c4;
+            --total-color: #2e7d32;
+        }
+
+        /* Estilos del Modo Oscuro (Black Mode) */
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #000000 0%, #121212 100%);
+            --card-bg: rgba(30, 30, 30, 0.95);
+            --text-color: #f1f1f1;
+            --table-bg: #1e1e1e;
+            --table-header-bg: #2a2a2a;
+            --table-border: #333333;
+            --input-focus: #37474f;
+            --total-color: #81c784;
+        }
+
         html, body {
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Evita que toda la pantalla se deslice */
+            overflow: hidden;
             font-family: Arial, sans-serif; 
         }
 
         body { 
             display: flex;
             flex-direction: column;
-            background-image: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000'); 
+            background: var(--bg-gradient); 
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
+            color: var(--text-color);
+            transition: background 0.3s ease;
         }
 
-        /* CONTENEDOR FIJO (Todo lo que está arriba de la línea amarilla) */
+        /* CONTENEDOR FIJO */
         .fixed-top-container {
             position: sticky;
             top: 0;
@@ -46,13 +71,36 @@
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+        }
+
+        /* Botón Modo Oscuro */
+        .theme-toggle-btn {
+            background: #333333;
+            color: #ffffff;
+            border: 1px solid #7e57c2;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+
+        body.dark-mode .theme-toggle-btn {
+            background: #ffffff;
+            color: #000000;
         }
 
         .header, .controls {
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--card-bg);
             padding: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: background 0.3s ease;
         }
 
         .header { 
@@ -63,8 +111,8 @@
             margin-top: 0;
         }
         
-        .header h1 { font-size: 20px; margin: 0; color: #333; }
-        .total { font-size: 24px; font-weight: bold; color: #2e7d32; }
+        .header h1 { font-size: 20px; margin: 0; color: var(--text-color); }
+        .total { font-size: 24px; font-weight: bold; color: var(--total-color); }
         
         .controls { 
             display: flex; 
@@ -73,57 +121,66 @@
             border-radius: 8px;
         }
 
-        .btn-link { background: none; border: none; color: #7e57c2; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-red { color: #d32f2f; }
+        .btn-link { background: none; border: none; color: #b39ddb; cursor: pointer; font-size: 16px; font-weight: bold; }
+        body:not(.dark-mode) .btn-link { color: #7e57c2; }
+        .btn-red { color: #ef5350 !important; }
 
         /* TABLA DE ENCABEZADO FIJO */
         .table-header-fixed {
             width: 100%;
             border-collapse: collapse;
-            background: #f8f9fa;
+            background: var(--table-header-bg);
             border-radius: 8px 8px 0 0;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         .table-header-fixed th { 
-            border: 1px solid #ddd; 
+            border: 1px solid var(--table-border); 
             padding: 10px 5px; 
-            color: #555; 
+            color: var(--text-color); 
             font-size: 12px; 
             text-align: center; 
         }
 
-        /* CONTENEDOR DESLIZABLE (Los productos de la línea amarilla hacia abajo) */
+        /* CONTENEDOR DESLIZABLE */
         .scrollable-content {
             flex: 1;
-            overflow-y: auto; /* Activa el scroll vertical solo aquí */
+            overflow-y: auto;
             padding: 0 20px 20px 20px;
             box-sizing: border-box;
-            -webkit-overflow-scrolling: touch; /* Suaviza el scroll en celulares */
+            -webkit-overflow-scrolling: touch;
         }
 
         .table-body-scroll { 
             width: 100%; 
             border-collapse: collapse; 
-            background: white; 
+            background: var(--table-bg); 
             border-radius: 0 0 8px 8px; 
             overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
         }
         
         .table-body-scroll td { 
-            border: 1px solid #ddd; 
+            border: 1px solid var(--table-border); 
             padding: 10px 5px; 
             text-align: left; 
         }
 
-        input { width: 95%; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; }
+        input { 
+            width: 95%; 
+            border: none; 
+            outline: none; 
+            font-size: 16px; 
+            background: transparent; 
+            padding: 5px; 
+            color: var(--text-color);
+        }
         
         .btn-action { 
             width: 30px; 
             height: 30px; 
             border-radius: 50%; 
-            border: 1px solid #ccc; 
+            border: 1px solid var(--table-border); 
             font-weight: bold; 
             cursor: pointer;
             display: flex;
@@ -133,18 +190,22 @@
         .btn-add-row { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
         .btn-del-row { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
         
-        input:focus { background-color: #fff9c4; border-radius: 4px; } 
+        body.dark-mode .btn-add-row { background: #1b5e20; color: #a5d6a7; }
+        body.dark-mode .btn-del-row { background: #b71c1c; color: #ef9a9a; }
+
+        input:focus { background-color: var(--input-focus); border-radius: 4px; } 
     </style>
 </head>
 <body>
 
-    <!-- El reproductor invisible -->
+    <!-- Reproductor invisible -->
     <div id="youtube-player" style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; overflow: hidden;"></div>
 
-    <!-- TODO ESTO SE QUEDA CONGELADO ARRIBA -->
+    <!-- PANEL SUPERIOR FIXO -->
     <div class="fixed-top-container">
-        <div class="datetime-container" id="current-datetime">
-            --/--/---- --:--:--
+        <div class="datetime-container">
+            <span id="current-datetime">--/--/---- --:--:--</span>
+            <button class="theme-toggle-btn" id="toggle-mode-btn" onclick="toggleBlackMode()">Black Mode: OFF</button>
         </div>
 
         <div class="header">
@@ -157,7 +218,7 @@
             <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
         </div>
 
-        <!-- Encabezado de la Tabla Congelado -->
+        <!-- Encabezado de la Tabla -->
         <table class="table-header-fixed">
             <thead>
                 <tr>
@@ -171,7 +232,7 @@
         </table>
     </div>
 
-    <!-- SECCIÓN CON SCROLL INDEPENDIENTE (A partir de la línea amarilla) -->
+    <!-- ÁREA DE PRODUCTOS DESLIZABLE -->
     <div class="scrollable-content">
         <table class="table-body-scroll">
             <tbody id="cuerpo-tabla"></tbody>
@@ -181,6 +242,29 @@
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
+        }
+
+        // --- LÓGICA DE MODO OSCURO (BLACK MODE) ---
+        function toggleBlackMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('toggle-mode-btn');
+            
+            if (isDark) {
+                btn.innerText = "Black Mode: ON";
+                localStorage.setItem('themeMode', 'dark');
+            } else {
+                btn.innerText = "Black Mode: OFF";
+                localStorage.setItem('themeMode', 'light');
+            }
+        }
+
+        function cargarTema() {
+            const savedTheme = localStorage.getItem('themeMode');
+            const btn = document.getElementById('toggle-mode-btn');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                btn.innerText = "Black Mode: ON";
+            }
         }
 
         // --- MÚSICA DE FONDO ---
@@ -231,7 +315,7 @@
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
 
-        // --- MANEJO DE DATOS Y TABLA ---
+        // --- MANEJO DE DATOS ---
         function guardarDatos() {
             const filas = document.querySelectorAll('.fila-producto');
             const datos = [];
@@ -248,6 +332,7 @@
         }
 
         function cargarDatos() {
+            cargarTema(); // Carga la preferencia de color al abrir
             const datosGuardados = localStorage.getItem('datosVentas');
             if (datosGuardados) {
                 const datos = JSON.parse(datosGuardados);
@@ -267,8 +352,6 @@
             const tbody = document.getElementById('cuerpo-tabla');
             const fila = document.createElement('tr');
             fila.className = "fila-producto";
-            
-            // Forzar anchos idénticos a los del encabezado fijo para mantener la simetría visual
             fila.innerHTML = `
                 <td style="width: 35px; text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
                 <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
