@@ -1,15 +1,17 @@
-const CACHE_NAME = 'marcela-app-v3';
+// Service Worker básico para caché y PWA
+const CACHE_NAME = 'marcela-app-v4';
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './heroe.mp3'
 ];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => cache.addAll(urlsToCache).catch(err => console.log('Error en caché:', err)))
   );
 });
 
