@@ -150,4 +150,216 @@
             background: var(--table-bg); 
             border-radius: 0 0 8px 8px; 
             overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(0
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+        }
+        
+        .table-body-scroll td { 
+            border: 1px solid var(--table-border); 
+            padding: 10px 5px; 
+            text-align: left; 
+        }
+
+        input { 
+            width: 95%; 
+            border: none; 
+            outline: none; 
+            font-size: 16px; 
+            background: transparent; 
+            padding: 5px; 
+            color: var(--text-color);
+        }
+        
+        .btn-action { 
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%; 
+            border: 1px solid var(--table-border); 
+            font-weight: bold; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-add-row { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+        .btn-del-row { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+        
+        body.dark-mode .btn-add-row { background: #1b5e20; color: #a5d6a7; }
+        body.dark-mode .btn-del-row { background: #b71c1c; color: #ef9a9a; }
+
+        input:focus { background-color: var(--input-focus); border-radius: 4px; } 
+    </style>
+</head>
+<body>
+
+    <div class="fixed-top-container">
+        <div class="datetime-container">
+            <span id="current-datetime">--/--/---- --:--:--</span>
+            <button class="theme-toggle-btn" id="toggle-mode-btn" onclick="toggleBlackMode()">Black Mode: OFF</button>
+        </div>
+
+        <div class="header">
+            <h1>MARCELA</h1>
+            <div class="total" id="display-total">$0.00</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-link" onclick="agregarFila()">+ Nuevo Item</button>
+            <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
+        </div>
+
+        <table class="table-header-fixed">
+            <thead>
+                <tr>
+                    <th style="width: 35px;">+</th>
+                    <th>Producto</th>
+                    <th style="width: 50px;">Cant.</th>
+                    <th style="width: 80px;">Precio</th>
+                    <th style="width: 35px;">-</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+    <div class="scrollable-content">
+        <table class="table-body-scroll">
+            <tbody id="cuerpo-tabla"></tbody>
+        </table>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        function toggleBlackMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('toggle-mode-btn');
+            if (isDark) {
+                btn.innerText = "Black Mode: ON";
+                localStorage.setItem('themeMode', 'dark');
+            } else {
+                btn.innerText = "Black Mode: OFF";
+                localStorage.setItem('themeMode', 'light');
+            }
+        }
+
+        function cargarTema() {
+            const savedTheme = localStorage.getItem('themeMode');
+            const btn = document.getElementById('toggle-mode-btn');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                btn.innerText = "Black Mode: ON";
+            }
+        }
+
+        function actualizarReloj() {
+            const ahora = new Date();
+            const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            const nombreDia = diasSemana[ahora.getDay()];
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const anio = ahora.getFullYear();
+            const horas = String(ahora.getHours()).padStart(2, '0');
+            const min = String(ahora.getMinutes()).padStart(2, '0');
+            const seg = String(ahora.getSeconds()).padStart(2, '0');
+            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${min}:${seg}`;
+        }
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj();
+
+        function guardarDatos() {
+            const filas = document.querySelectorAll('.fila-producto');
+            const datos = [];
+            filas.forEach(fila => {
+                const producto = fila.querySelector('.prod').value;
+                const cantidad = fila.querySelector('.cant').value;
+                const precio = fila.querySelector('.prec').value;
+                if (producto || cantidad > 0 || precio > 0) {
+                    datos.push({ producto, cantidad, precio });
+                }
+            });
+            localStorage.setItem('datosVentas', JSON.stringify(datos));
+            calcularTotal();
+        }
+
+        function cargarDatos() {
+            cargarTema();
+            const datosGuardados = localStorage.getItem('datosVentas');
+            if (datosGuardados) {
+                const datos = JSON.parse(datosGuardados);
+                const tbody = document.getElementById('cuerpo-tabla');
+                tbody.innerHTML = '';
+                datos.forEach(item => {
+                    crearFilaHTML(item.producto, item.cantidad, item.precio);
+                });
+            }
+            if (document.querySelectorAll('.fila-producto').length === 0) {
+                agregarFila();
+            }
+            calcularTotal();
+        }
+
+        function crearFilaHTML(prod = '', cant = 1, prec = '') {
+            const tbody = document.getElementById('cuerpo-tabla');
+            const fila = document.createElement('tr');
+            fila.className = "fila-producto";
+            fila.innerHTML = `
+                <td style="width: 35px; text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
+                <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
+                <td style="width: 50px;"><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
+                <td style="width: 80px;"><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
+                <td style="width: 35px; text-align: center;"><button class="btn-action btn-del-row" onclick="eliminarFila(this)">-</button></td>
+            `;
+            tbody.appendChild(fila);
+            return fila;
+        }
+
+        function agregarFila() {
+            const fila = crearFilaHTML();
+            fila.querySelector('.prod').focus();
+            guardarDatos();
+        }
+
+        function eliminarFila(boton) {
+            const fila = boton.closest('tr');
+            fila.remove();
+            guardarDatos();
+            if (document.querySelectorAll('.fila-producto').length === 0) {
+                agregarFila();
+            }
+        }
+
+        function verificarEnter(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                agregarFila();
+            }
+        }
+
+        function calcularTotal() {
+            let totalGeneral = 0;
+            const filas = document.querySelectorAll('.fila-producto');
+            filas.forEach(fila => {
+                const cantidad = parseFloat(fila.querySelector('.cant').value);
+                const precio = parseFloat(fila.querySelector('.prec').value);
+                if (!isNaN(cantidad) && !isNaN(precio)) {
+                    totalGeneral += (cantidad * precio);
+                }
+            });
+            document.getElementById('display-total').innerText = 
+                `$${totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function borrarTodo() {
+            if(confirm("¿Deseas limpiar toda la lista?")) {
+                localStorage.removeItem('datosVentas');
+                document.getElementById('cuerpo-tabla').innerHTML = '';
+                document.getElementById('display-total').innerText = '$0.00';
+                agregarFila();
+            }
+        }
+
+        window.onload = cargarDatos;
+    </script>
+</body>
+</html>
