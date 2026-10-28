@@ -10,7 +10,6 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <style>
-        /* Variables para temas */
         :root {
             --bg-gradient: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000');
             --card-bg: rgba(255, 255, 255, 0.9);
@@ -22,7 +21,6 @@
             --total-color: #2e7d32;
         }
 
-        /* Estilos del Modo Oscuro (Black Mode) */
         body.dark-mode {
             --bg-gradient: linear-gradient(135deg, #000000 0%, #121212 100%);
             --card-bg: rgba(30, 30, 30, 0.95);
@@ -53,7 +51,6 @@
             transition: background 0.3s ease;
         }
 
-        /* CONTENEDOR FIJO */
         .fixed-top-container {
             position: sticky;
             top: 0;
@@ -66,7 +63,7 @@
             background: rgba(126, 87, 194, 0.9);
             color: white;
             text-align: center;
-            padding: 5px;
+            padding: 5px 15px;
             border-radius: 8px 8px 0 0;
             font-size: 14px;
             font-weight: bold;
@@ -74,10 +71,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 5px 15px;
         }
 
-        /* Botón Modo Oscuro */
         .theme-toggle-btn {
             background: #333333;
             color: #ffffff;
@@ -125,7 +120,6 @@
         body:not(.dark-mode) .btn-link { color: #7e57c2; }
         .btn-red { color: #ef5350 !important; }
 
-        /* TABLA DE ENCABEZADO FIJO */
         .table-header-fixed {
             width: 100%;
             border-collapse: collapse;
@@ -142,7 +136,6 @@
             text-align: center; 
         }
 
-        /* CONTENEDOR DESLIZABLE */
         .scrollable-content {
             flex: 1;
             overflow-y: auto;
@@ -198,10 +191,11 @@
 </head>
 <body>
 
-    <!-- Reproductor invisible -->
-    <div id="youtube-player" style="position: absolute; top: -100px; left: -100px; width: 1px; height: 1px; overflow: hidden;"></div>
+    <!-- Audio Nativo para evitar bloqueos de segundo plano -->
+    <audio id="bg-audio" loop preload="auto">
+        <source src="heroe.mp3" type="audio/mpeg">
+    </audio>
 
-    <!-- PANEL SUPERIOR FIXO -->
     <div class="fixed-top-container">
         <div class="datetime-container">
             <span id="current-datetime">--/--/---- --:--:--</span>
@@ -218,7 +212,6 @@
             <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
         </div>
 
-        <!-- Encabezado de la Tabla -->
         <table class="table-header-fixed">
             <thead>
                 <tr>
@@ -232,7 +225,6 @@
         </table>
     </div>
 
-    <!-- ÁREA DE PRODUCTOS DESLIZABLE -->
     <div class="scrollable-content">
         <table class="table-body-scroll">
             <tbody id="cuerpo-tabla"></tbody>
@@ -244,11 +236,27 @@
             navigator.serviceWorker.register('sw.js');
         }
 
-        // --- LÓGICA DE MODO OSCURO (BLACK MODE) ---
+        const audioPlayer = document.getElementById('bg-audio');
+
+        function configurarAudio() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'Héroe',
+                    artist: 'Enrique Iglesias',
+                    album: 'App Marcela'
+                });
+                navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
+                navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
+            }
+
+            document.body.addEventListener('click', () => {
+                audioPlayer.play().catch(e => console.log("Audio play prevented:", e));
+            }, { once: true });
+        }
+
         function toggleBlackMode() {
             const isDark = document.body.classList.toggle('dark-mode');
             const btn = document.getElementById('toggle-mode-btn');
-            
             if (isDark) {
                 btn.innerText = "Black Mode: ON";
                 localStorage.setItem('themeMode', 'dark');
@@ -267,39 +275,6 @@
             }
         }
 
-        // --- MÚSICA DE FONDO ---
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '1',
-                width: '1',
-                videoId: 'a-Bd5PjpeDc', 
-                playerVars: {
-                    'autoplay': 1,
-                    'loop': 1,
-                    'playlist': 'a-Bd5PjpeDc',
-                    'controls': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': onPlayerReady
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            document.body.addEventListener('click', () => {
-                event.target.playVideo();
-            }, { once: true });
-        }
-
-        // --- RELOJ ---
         function actualizarReloj() {
             const ahora = new Date();
             const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -315,7 +290,6 @@
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
 
-        // --- MANEJO DE DATOS ---
         function guardarDatos() {
             const filas = document.querySelectorAll('.fila-producto');
             const datos = [];
@@ -332,7 +306,8 @@
         }
 
         function cargarDatos() {
-            cargarTema(); // Carga la preferencia de color al abrir
+            cargarTema();
+            configurarAudio();
             const datosGuardados = localStorage.getItem('datosVentas');
             if (datosGuardados) {
                 const datos = JSON.parse(datosGuardados);
