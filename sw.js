@@ -1,18 +1,35 @@
-// Nombre del cache (opcional para control de versiones)
-const cacheName = 'marcela-v1';
+const CACHE_NAME = 'marcela-app-v3';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json'
+];
 
-// Evento de instalación
-self.addEventListener('install', (e) => {
-  console.log('[Service Worker] Instalado');
+self.addEventListener('install', event => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
 });
 
-// Evento de activación
-self.addEventListener('activate', (e) => {
-  console.log('[Service Worker] Activado');
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
-// Evento Fetch (necesario para que Chrome permita la instalación)
-self.addEventListener('fetch', (e) => {
-  // Por ahora, solo deja que las peticiones pasen normalmente
-  e.respondWith(fetch(e.request));
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
 });
