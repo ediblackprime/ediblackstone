@@ -1,4 +1,4 @@
-const CACHE_NAME = 'marcela-app-v7';
+const CACHE_NAME = 'marcela-app-v8';
 
 const urlsToCache = [
   './',
