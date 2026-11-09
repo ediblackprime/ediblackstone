@@ -1,18 +1,24 @@
-const CACHE_NAME = 'marcela-app-v5';
+const CACHE_NAME = 'marcela-app-v7';
+
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon.png'
 ];
 
+// Instalación del Service Worker y almacenamiento en caché
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
+// Activación y limpieza de cachés antiguos
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -27,9 +33,12 @@ self.addEventListener('activate', event => {
   );
 });
 
+// Interceptación de peticiones para funcionamiento offline
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
-      .then(response => response || fetch(event.request))
+      .then(response => {
+        return response || fetch(event.request);
+      })
   );
 });
