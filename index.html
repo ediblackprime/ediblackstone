@@ -31,7 +31,6 @@
             justify-content: space-between;
             align-items: center;
             font-size: 0.9rem;
-            border-radius: 0;
         }
 
         .header { 
@@ -56,6 +55,13 @@
             margin: 0 auto;
         }
 
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
         .title-section {
             font-size: 1.5rem;
             font-weight: bold;
@@ -68,9 +74,36 @@
             color: var(--success-color);
         }
 
-        /* Estilos de la tabla de registros */
+        /* Controles y formulario original */
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: none;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input {
+            background-color: #2c2c2c;
+            color: var(--text-color);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Estilos de la tabla original */
         .table-container {
-            margin-top: 20px;
+            margin-top: 15px;
             overflow-x: auto;
         }
 
@@ -93,10 +126,6 @@
             color: var(--text-color);
             font-weight: bold;
         }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
     </style>
 </head>
 <body>
@@ -113,20 +142,29 @@
             <div class="total-amount" id="total-display">$0.00</div>
         </div>
 
-        <!-- Tabla de datos recuperada -->
+        <!-- Panel de entrada original para agregar registros -->
+        <div class="card">
+            <div class="form-group">
+                <input type="text" id="desc-input" placeholder="Descripción del producto o venta">
+            </div>
+            <div class="form-group">
+                <input type="number" id="monto-input" placeholder="Monto ($)">
+            </div>
+            <button onclick="agregarRegistro()">Agregar Registro</button>
+        </div>
+
+        <!-- Tabla completa con persistencia -->
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>Descripción</th>
                         <th>Monto</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody id="data-table-body">
-                    <!-- Aquí se cargan tus registros guardados -->
-                    <tr>
-                        <td colspan="2" style="text-align: center; color: #888;">No hay registros aún</td>
-                    </tr>
+                    <!-- Los registros se cargan dinámicamente aquí -->
                 </tbody>
             </table>
         </div>
@@ -142,7 +180,61 @@
         setInterval(updateDateTime, 1000);
         updateDateTime();
 
-        // Registro del Service Worker con versión v8
+        // Lógica de datos y localStorage
+        let registros = JSON.parse(localStorage.getItem('marcela_registros')) || [];
+
+        function guardarYRenderizar() {
+            localStorage.setItem('marcela_registros', JSON.stringify(registros));
+            renderizarTabla();
+        }
+
+        function agregarRegistro() {
+            const desc = document.getElementById('desc-input').value.trim();
+            const monto = parseFloat(document.getElementById('monto-input').value);
+
+            if (!desc || isNaN(monto)) {
+                alert('Por favor ingresa una descripción y un monto válido.');
+                return;
+            }
+
+            registros.push({ desc, monto });
+            document.getElementById('desc-input').value = '';
+            document.getElementById('monto-input').value = '';
+            guardarYRenderizar();
+        }
+
+        function eliminarRegistro(index) {
+            registros.splice(index, 1);
+            guardarYRenderizar();
+        }
+
+        function renderizarTabla() {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            let total = 0;
+
+            if (registros.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #888;">No hay registros aún</td></tr>';
+            } else {
+                registros.forEach((item, index) => {
+                    total += item.monto;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.desc}</td>
+                        <td>$${item.monto.toFixed(2)}</td>
+                        <td><button onclick="eliminarRegistro(${index})" style="background-color: #d32f2f; padding: 5px 10px; font-size: 0.8rem;">X</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('total-display').innerText = `$${total.toFixed(2)}`;
+        }
+
+        // Cargar al iniciar
+        renderizarTabla();
+
+        // Registro del Service Worker con versión v9 (para forzar la actualización con todos los elementos)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
             .then(() => console.log('Service Worker registrado con éxito.'))
