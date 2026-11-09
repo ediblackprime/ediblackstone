@@ -3,363 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Marcela</title>
-    
+    <title>Marcela App</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7e57c2">
-    <meta name="mobile-web-app-capable" content="yes">
-
+    <meta name="theme-color" content="#4a148c">
     <style>
         :root {
-            --bg-gradient: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=1000');
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --text-color: #333333;
-            --table-bg: #ffffff;
-            --table-header-bg: #f8f9fa;
-            --table-border: #dddddd;
-            --input-focus: #fff9c4;
-            --total-color: #2e7d32;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #4a148c;
+            --success-color: #81c784;
         }
 
-        body.dark-mode {
-            --bg-gradient: linear-gradient(135deg, #000000 0%, #121212 100%);
-            --card-bg: rgba(30, 30, 30, 0.95);
-            --text-color: #f1f1f1;
-            --table-bg: #1e1e1e;
-            --table-header-bg: #2a2a2a;
-            --table-border: #333333;
-            --input-focus: #37474f;
-            --total-color: #81c784;
-        }
-
-        html, body {
-            height: 100%;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif; 
-        }
-
-        body { 
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-gradient); 
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-            color: var(--text-color);
-            transition: background 0.3s ease;
-        }
-
-        .fixed-top-container {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 20px 20px 0 20px;
             box-sizing: border-box;
-        }
-
-        .datetime-container {
-            background: rgba(126, 87, 194, 0.9);
-            color: white;
-            text-align: center;
-            padding: 5px 15px;
-            border-radius: 8px 8px 0 0;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .theme-toggle-btn {
-            background: #333333;
-            color: #ffffff;
-            border: 1px solid #7e57c2;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            outline: none;
-        }
-
-        body.dark-mode .theme-toggle-btn {
-            background: #ffffff;
-            color: #000000;
-        }
-
-        .header, .controls {
-            background: var(--card-bg);
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: background 0.3s ease;
         }
 
         .header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-radius: 0 0 8px 8px; 
+            border-radius: 0 0 12px 12px; 
             margin-top: 0;
+            padding: 20px;
+            
+            /* Fondo con la imagen de tulipanes y capa oscura semitransparente para legibilidad */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('https://as1.ftcdn.net/jpg/02/66/90/28/1000_F_266902867_XzTGdah6CEBFjrsJySBkqGedXZw7UExs.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
-        
-        .header h1 { font-size: 20px; margin: 0; color: var(--text-color); }
-        .total { font-size: 24px; font-weight: bold; color: var(--total-color); }
-        
-        .controls { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
             border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
-        .btn-link { background: none; border: none; color: #b39ddb; cursor: pointer; font-size: 16px; font-weight: bold; }
-        body:not(.dark-mode) .btn-link { color: #7e57c2; }
-        .btn-red { color: #ef5350 !important; }
-
-        .table-header-fixed {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--table-header-bg);
-            border-radius: 8px 8px 0 0;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .table-header-fixed th { 
-            border: 1px solid var(--table-border); 
-            padding: 10px 5px; 
-            color: var(--text-color); 
-            font-size: 12px; 
-            text-align: center; 
+        .title-section {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 20px 20px 20px;
-            box-sizing: border-box;
-            -webkit-overflow-scrolling: touch;
+        .total-amount {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--success-color);
         }
 
-        .table-body-scroll { 
-            width: 100%; 
-            border-collapse: collapse; 
-            background: var(--table-bg); 
-            border-radius: 0 0 8px 8px; 
-            overflow: hidden; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
-        }
-        
-        .table-body-scroll td { 
-            border: 1px solid var(--table-border); 
-            padding: 10px 5px; 
-            text-align: left; 
-        }
-
-        input { 
-            width: 95%; 
-            border: none; 
-            outline: none; 
-            font-size: 16px; 
-            background: transparent; 
-            padding: 5px; 
-            color: var(--text-color);
-        }
-        
-        .btn-action { 
-            width: 30px; 
-            height: 30px; 
-            border-radius: 50%; 
-            border: 1px solid var(--table-border); 
-            font-weight: bold; 
-            cursor: pointer;
+        .top-bar {
+            background-color: var(--accent-color);
+            padding: 8px 15px;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            font-size: 0.9rem;
+            border-radius: 8px 8px 0 0;
         }
-        .btn-add-row { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
-        .btn-del-row { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
-        
-        body.dark-mode .btn-add-row { background: #1b5e20; color: #a5d6a7; }
-        body.dark-mode .btn-del-row { background: #b71c1c; color: #ef9a9a; }
-
-        input:focus { background-color: var(--input-focus); border-radius: 4px; } 
     </style>
 </head>
 <body>
 
-    <div class="fixed-top-container">
-        <div class="datetime-container">
-            <span id="current-datetime">--/--/---- --:--:--</span>
-            <button class="theme-toggle-btn" id="toggle-mode-btn" onclick="toggleBlackMode()">Black Mode: OFF</button>
-        </div>
-
-        <div class="header">
-            <h1>MARCELA</h1>
-            <div class="total" id="display-total">$0.00</div>
-        </div>
-
-        <div class="controls">
-            <button class="btn-link" onclick="agregarFila()">+ Nuevo Item</button>
-            <button class="btn-link btn-red" onclick="borrarTodo()">Borrar todo</button>
-        </div>
-
-        <table class="table-header-fixed">
-            <thead>
-                <tr>
-                    <th style="width: 35px;">+</th>
-                    <th>Producto</th>
-                    <th style="width: 50px;">Cant.</th>
-                    <th style="width: 80px;">Precio</th>
-                    <th style="width: 35px;">-</th>
-                </tr>
-            </thead>
-        </table>
+    <div class="top-bar">
+        <span id="datetime">Domingo, 08/11/2026 20:30:18</span>
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">Black Mode: ON</span>
     </div>
 
-    <div class="scrollable-content">
-        <table class="table-body-scroll">
-            <tbody id="cuerpo-tabla"></tbody>
-        </table>
+    <div class="container">
+        <div class="card header">
+            <div class="title-section">MARCELA</div>
+            <div class="total-amount">$0.00</div>
+        </div>
     </div>
 
     <script>
+        // Reloj y fecha en tiempo real
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('datetime').innerText = now.toLocaleDateString('es-ES', options);
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Registro del Service Worker para PWA
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker registrado con éxito.'))
+            .catch(err => console.log('Error al registrar Service Worker:', err));
         }
-
-        function toggleBlackMode() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            const btn = document.getElementById('toggle-mode-btn');
-            if (isDark) {
-                btn.innerText = "Black Mode: ON";
-                localStorage.setItem('themeMode', 'dark');
-            } else {
-                btn.innerText = "Black Mode: OFF";
-                localStorage.setItem('themeMode', 'light');
-            }
-        }
-
-        function cargarTema() {
-            const savedTheme = localStorage.getItem('themeMode');
-            const btn = document.getElementById('toggle-mode-btn');
-            if (savedTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                btn.innerText = "Black Mode: ON";
-            }
-        }
-
-        function actualizarReloj() {
-            const ahora = new Date();
-            const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-            const nombreDia = diasSemana[ahora.getDay()];
-            const dia = String(ahora.getDate()).padStart(2, '0');
-            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-            const anio = ahora.getFullYear();
-            const horas = String(ahora.getHours()).padStart(2, '0');
-            const min = String(ahora.getMinutes()).padStart(2, '0');
-            const seg = String(ahora.getSeconds()).padStart(2, '0');
-            document.getElementById('current-datetime').innerText = `${nombreDia}, ${dia}/${mes}/${anio} ${horas}:${min}:${seg}`;
-        }
-        setInterval(actualizarReloj, 1000);
-        actualizarReloj();
-
-        function guardarDatos() {
-            const filas = document.querySelectorAll('.fila-producto');
-            const datos = [];
-            filas.forEach(fila => {
-                const producto = fila.querySelector('.prod').value;
-                const cantidad = fila.querySelector('.cant').value;
-                const precio = fila.querySelector('.prec').value;
-                if (producto || cantidad > 0 || precio > 0) {
-                    datos.push({ producto, cantidad, precio });
-                }
-            });
-            localStorage.setItem('datosVentas', JSON.stringify(datos));
-            calcularTotal();
-        }
-
-        function cargarDatos() {
-            cargarTema();
-            const datosGuardados = localStorage.getItem('datosVentas');
-            if (datosGuardados) {
-                const datos = JSON.parse(datosGuardados);
-                const tbody = document.getElementById('cuerpo-tabla');
-                tbody.innerHTML = '';
-                datos.forEach(item => {
-                    crearFilaHTML(item.producto, item.cantidad, item.precio);
-                });
-            }
-            if (document.querySelectorAll('.fila-producto').length === 0) {
-                agregarFila();
-            }
-            calcularTotal();
-        }
-
-        function crearFilaHTML(prod = '', cant = 1, prec = '') {
-            const tbody = document.getElementById('cuerpo-tabla');
-            const fila = document.createElement('tr');
-            fila.className = "fila-producto";
-            fila.innerHTML = `
-                <td style="width: 35px; text-align: center;"><button class="btn-action btn-add-row" onclick="agregarFila()">+</button></td>
-                <td><input type="text" class="prod" value="${prod}" placeholder="Item..." oninput="guardarDatos()"></td>
-                <td style="width: 50px;"><input type="number" class="cant" value="${cant}" onfocus="this.select()" oninput="guardarDatos()"></td>
-                <td style="width: 80px;"><input type="number" class="prec" value="${prec}" placeholder="0.00" onfocus="this.select()" oninput="guardarDatos()" onkeydown="verificarEnter(event)"></td>
-                <td style="width: 35px; text-align: center;"><button class="btn-action btn-del-row" onclick="eliminarFila(this)">-</button></td>
-            `;
-            tbody.appendChild(fila);
-            return fila;
-        }
-
-        function agregarFila() {
-            const fila = crearFilaHTML();
-            fila.querySelector('.prod').focus();
-            guardarDatos();
-        }
-
-        function eliminarFila(boton) {
-            const fila = boton.closest('tr');
-            fila.remove();
-            guardarDatos();
-            if (document.querySelectorAll('.fila-producto').length === 0) {
-                agregarFila();
-            }
-        }
-
-        function verificarEnter(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                agregarFila();
-            }
-        }
-
-        function calcularTotal() {
-            let totalGeneral = 0;
-            const filas = document.querySelectorAll('.fila-producto');
-            filas.forEach(fila => {
-                const cantidad = parseFloat(fila.querySelector('.cant').value);
-                const precio = parseFloat(fila.querySelector('.prec').value);
-                if (!isNaN(cantidad) && !isNaN(precio)) {
-                    totalGeneral += (cantidad * precio);
-                }
-            });
-            document.getElementById('display-total').innerText = 
-                `$${totalGeneral.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-        }
-
-        function borrarTodo() {
-            if(confirm("¿Deseas limpiar toda la lista?")) {
-                localStorage.removeItem('datosVentas');
-                document.getElementById('cuerpo-tabla').innerHTML = '';
-                document.getElementById('display-total').innerText = '$0.00';
-                agregarFila();
-            }
-        }
-
-        window.onload = cargarDatos;
     </script>
 </body>
 </html>
