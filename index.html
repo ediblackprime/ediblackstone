@@ -24,6 +24,16 @@
             box-sizing: border-box;
         }
 
+        .top-bar {
+            background-color: var(--accent-color);
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border-radius: 0;
+        }
+
         .header { 
             display: flex; 
             justify-content: space-between; 
@@ -32,7 +42,7 @@
             margin-top: 0;
             padding: 20px;
             
-            /* Fondo con la imagen de tulipanes y capa oscura semitransparente para legibilidad */
+            /* Fondo con la imagen de tulipanes y capa oscura para legibilidad */
             background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('https://as1.ftcdn.net/jpg/02/66/90/28/1000_F_266902867_XzTGdah6CEBFjrsJySBkqGedXZw7UExs.jpg');
             background-size: cover;
             background-position: center;
@@ -44,13 +54,6 @@
             padding: 15px;
             max-width: 600px;
             margin: 0 auto;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
         }
 
         .title-section {
@@ -65,28 +68,67 @@
             color: var(--success-color);
         }
 
-        .top-bar {
-            background-color: var(--accent-color);
-            padding: 8px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            border-radius: 8px 8px 0 0;
+        /* Estilos de la tabla de registros */
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: #2c2c2c;
+            color: var(--text-color);
+            font-weight: bold;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
         }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <span id="datetime">Domingo, 08/11/2026 20:30:18</span>
+        <span id="datetime">Cargando fecha...</span>
         <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px;">Black Mode: ON</span>
     </div>
 
     <div class="container">
-        <div class="card header">
+        <!-- Encabezado con los tulipanes -->
+        <div class="header card">
             <div class="title-section">MARCELA</div>
-            <div class="total-amount">$0.00</div>
+            <div class="total-amount" id="total-display">$0.00</div>
+        </div>
+
+        <!-- Tabla de datos recuperada -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <!-- Aquí se cargan tus registros guardados -->
+                    <tr>
+                        <td colspan="2" style="text-align: center; color: #888;">No hay registros aún</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -100,7 +142,7 @@
         setInterval(updateDateTime, 1000);
         updateDateTime();
 
-        // Registro del Service Worker para PWA
+        // Registro del Service Worker con versión v8
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
             .then(() => console.log('Service Worker registrado con éxito.'))
